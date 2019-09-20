@@ -1,20 +1,36 @@
 use std::ffi::{CStr, CString};
 use std::os::raw::c_char;
-use std::env;
+use std::{env, io};
+use actix_web::{web, App, HttpResponse, HttpServer, Responder};
+use serde::Deserialize;
 
 extern "C" {
     pub fn RunQuery(q: *const c_char) -> *const c_char;
 }
 
-fn main() {
-    let query_string = env::args().nth(1).expect("No query provided as arg!");
+#[derive(Deserialize)]
+struct QueryRequest {
+    statement: String,
+}
 
-    println!("Query: {:?}", query_string);
+fn query_service(request: web::Json<QueryRequest>) -> impl Responder {
+    println!("Query: {:?}", request.statement);
 
-    let query = CString::new(query_string).unwrap();
+    let query = CString::new(request.statement.clone()).unwrap();
     unsafe {
         let result = CStr::from_ptr(RunQuery(query.as_ptr()));
-        println!("Result: {:?}", result.to_str().unwrap());
+        HttpResponse::Ok().body(result.to_str().unwrap())
     }
-
 }
+
+fn main() {
+    HttpServer::new(|| {
+        App::new()
+            .route("/query/service", web::post().to(query_service))
+        })
+        .bind("127.0.0.1:9093")
+        .unwrap()
+        .run()
+        .unwrap();
+}
+
