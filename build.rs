@@ -11,7 +11,7 @@ fn main() {
     // /usr/local/opt/go\@1.11/bin/go build -buildmode=c-archive -o target/debug/deps/libquery.a main.go
 
     // Build query into c-archive
-    let output = Command::new("/usr/local/opt/go@1.11/bin/go")
+    Command::new("/usr/local/opt/go@1.11/bin/go")
         .arg("build")
         .arg("-buildmode=c-archive")
         .arg("-o")
