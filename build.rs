@@ -7,6 +7,7 @@ fn main() {
     let manifest_dir = env::var("CARGO_MANIFEST_DIR").unwrap();
 
     println!("cargo:rerun-if-changed={}/src/go/", manifest_dir);
+    println!("cargo:rerun-if-changed=build.rs");
 
     // /usr/local/opt/go\@1.11/bin/go build -buildmode=c-archive -o target/debug/deps/libquery.a main.go
 
@@ -14,6 +15,7 @@ fn main() {
     Command::new("/usr/local/opt/go@1.11/bin/go")
         .arg("build")
         .arg("-buildmode=c-archive")
+        .arg("-ldflags=-s -w")
         .arg("-o")
         .arg(format!("{}/libqueryengine.a", out_path.to_str().unwrap()))
         .arg(format!("{}/src/go/query.go", manifest_dir))
