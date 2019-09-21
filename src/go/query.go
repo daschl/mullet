@@ -7,7 +7,7 @@ import (
 	"os"
 	"runtime"
 	"time"
-
+	"sync/atomic"
 	"github.com/couchbase/query/accounting"
 	acct_resolver "github.com/couchbase/query/accounting/resolver"
 	config_resolver "github.com/couchbase/query/clustering/resolver"
@@ -107,7 +107,10 @@ type MockResponse struct {
 	done     chan bool
 }
 
-func start() *MockServer {
+var GlobalServer atomic.Value
+
+//export StartServer
+func StartServer() {
 
 	mockServer := &MockServer{}
 
@@ -165,7 +168,7 @@ func start() *MockServer {
 	mockServer.acctstore = acctstore
 	mockServer.dstore = ds
 
-	return mockServer
+	GlobalServer.Store(mockServer)
 }
 
 type scanConfigImpl struct {
@@ -191,7 +194,7 @@ func RunQuery(q *C.char) *C.char {
 	logging.SetLogger(logger)
 	runtime.GOMAXPROCS(1)
 
-	mockServer := start()
+	mockServer := GlobalServer.Load().(*MockServer)
 
 	namespace := "json"
 

@@ -4,6 +4,7 @@ use std::ffi::{CStr, CString};
 use std::os::raw::c_char;
 
 extern "C" {
+    pub fn StartServer();
     pub fn RunQuery(q: *const c_char) -> *const c_char;
 }
 
@@ -21,7 +22,7 @@ fn query_service_form(request: web::Form<QueryRequest>) -> impl Responder {
 }
 
 fn query_service_internal(statement: String) -> impl Responder {
-    println!("Query: {:?}", statement);
+    // println!("Query: {:?}", statement);
 
     let query = CString::new(statement).unwrap();
     unsafe {
@@ -31,20 +32,24 @@ fn query_service_internal(statement: String) -> impl Responder {
 }
 
 fn main() {
+    unsafe {
+        StartServer();
+    }
+
     HttpServer::new(|| App::new()
         .route(
-            "/query/service",
-            web::post()
-                .guard(guard::Header("content-type", "application/json"))
-                .to(query_service_json))
+        "/query/service",
+        web::post()
+            .guard(guard::Header("content-type", "application/json"))
+            .to(query_service_json))
         .route(
-            "/query/service",
-            web::post()
-                .guard(guard::Header("content-type", "application/x-www-form-urlencoded"))
-                .to(query_service_form))
+        "/query/service",
+        web::post()
+            .guard(guard::Header("content-type", "application/x-www-form-urlencoded"))
+            .to(query_service_form))
     )
-        .bind("127.0.0.1:9093")
-        .unwrap()
-        .run()
-        .unwrap();
+    .bind("127.0.0.1:9093")
+    .unwrap()
+    .run()
+    .unwrap();
 }
