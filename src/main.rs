@@ -1,4 +1,4 @@
-use actix_web::{web, App, HttpResponse, HttpServer, Responder};
+use actix_web::{web, App, HttpResponse, HttpServer, Responder, guard};
 use serde::Deserialize;
 use std::ffi::{CStr, CString};
 use std::os::raw::c_char;
@@ -12,10 +12,18 @@ struct QueryRequest {
     statement: String,
 }
 
-fn query_service(request: web::Json<QueryRequest>) -> impl Responder {
-    println!("Query: {:?}", request.statement);
+fn query_service_json(request: web::Json<QueryRequest>) -> impl Responder {
+    query_service_internal(request.statement.clone())
+}
 
-    let query = CString::new(request.statement.clone()).unwrap();
+fn query_service_form(request: web::Form<QueryRequest>) -> impl Responder {
+    query_service_internal(request.statement.clone())
+}
+
+fn query_service_internal(statement: String) -> impl Responder {
+    println!("Query: {:?}", statement);
+
+    let query = CString::new(statement).unwrap();
     unsafe {
         let result = CStr::from_ptr(RunQuery(query.as_ptr()));
         HttpResponse::Ok().body(result.to_str().unwrap())
@@ -23,7 +31,18 @@ fn query_service(request: web::Json<QueryRequest>) -> impl Responder {
 }
 
 fn main() {
-    HttpServer::new(|| App::new().route("/query/service", web::post().to(query_service)))
+    HttpServer::new(|| App::new()
+        .route(
+            "/query/service",
+            web::post()
+                .guard(guard::Header("content-type", "application/json"))
+                .to(query_service_json))
+        .route(
+            "/query/service",
+            web::post()
+                .guard(guard::Header("content-type", "application/x-www-form-urlencoded"))
+                .to(query_service_form))
+    )
         .bind("127.0.0.1:9093")
         .unwrap()
         .run()
