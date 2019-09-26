@@ -34,6 +34,8 @@ impl MulletNodeConfig {
 pub enum MulletService {
     #[serde(alias = "query")]
     Query,
+    #[serde(alias = "kv")]
+    KeyValue,
 }
 
 #[derive(Debug, Deserialize, Clone)]

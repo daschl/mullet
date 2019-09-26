@@ -6,6 +6,7 @@ use crate::state::SharedMulletState;
 use slog::debug;
 use slog::o;
 use slog::Logger;
+use crate::service::kv::KeyValueService;
 
 pub struct Node {
     config: MulletNodeConfig,
@@ -42,6 +43,13 @@ impl Node {
                     debug!(self.logger, "Starting Query Service at port {}", port);
                     let service =
                         QueryService::new(port, self.logger.new(o!()), self.state.clone());
+                    service.run();
+                },
+                MulletService::KeyValue => {
+                    let port = self.port_base + 2;
+                    debug!(self.logger, "Starting KV Service at port {}", port);
+                    let service =
+                        KeyValueService::new(port, self.logger.new(o!()), self.state.clone());
                     service.run();
                 }
             }

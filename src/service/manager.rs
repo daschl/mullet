@@ -60,11 +60,7 @@ impl Service for ManagerService {
                     "/pools/default/buckets/{name}",
                     web::get().to(bucket_verbose),
                 )
-                .route(
-                    "/pools/default/b/{name}",
-                    web::get().to(bucket_terse),
-                )
-
+                .route("/pools/default/b/{name}", web::get().to(bucket_terse))
         })
         .bind(format!("127.0.0.1:{}", self.port))
         .unwrap()

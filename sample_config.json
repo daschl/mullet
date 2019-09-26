@@ -2,7 +2,7 @@
   "low_port": 9000,
   "nodes": [
     {
-      "services": ["query"]
+      "services": ["kv", "query"]
     },
     {
       "services": ["query"]
