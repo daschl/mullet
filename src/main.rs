@@ -24,7 +24,8 @@ fn main() {
     let options = Options::from_args();
 
     let config: MulletClusterConfig = if options.config_path.is_some() {
-        let raw_config = fs::read_to_string(options.config_path.unwrap()).expect("Could not load config file");
+        let raw_config =
+            fs::read_to_string(options.config_path.unwrap()).expect("Could not load config file");
         serde_json::from_str(&raw_config).expect("Cannot parse config")
     } else {
         MulletClusterConfig::default()

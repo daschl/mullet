@@ -1,9 +1,9 @@
 use crate::service::Service;
 use crate::state::SharedMulletState;
-use slog::Logger;
-use actix_server::{Server, Io};
+use actix_server::{Io, Server};
 use actix_service::{service_fn, NewService};
 use futures::future;
+use slog::Logger;
 
 pub struct KeyValueService {
     port: usize,
@@ -27,9 +27,7 @@ impl Service for KeyValueService {
 
         Server::build()
             .bind("kv", format!("127.0.0.1:{}", self.port), || {
-                service_fn(move |stream: Io<tokio_tcp::TcpStream>| {
-                    future::ok::<(), ()>(())
-                })
+                service_fn(move |stream: Io<tokio_tcp::TcpStream>| future::ok::<(), ()>(()))
             })
             .expect("Could not start kv socket")
             .start();

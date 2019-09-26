@@ -8,7 +8,6 @@ pub struct MulletClusterConfig {
 }
 
 impl MulletClusterConfig {
-
     pub fn nodes(&self) -> &Vec<MulletNodeConfig> {
         &self.nodes
     }
@@ -24,7 +23,7 @@ impl Default for MulletClusterConfig {
     fn default() -> Self {
         MulletClusterConfig {
             nodes: vec![MulletNodeConfig {
-                services: vec![MulletService::KeyValue, MulletService::Query]
+                services: vec![MulletService::KeyValue, MulletService::Query],
             }],
             buckets: vec![MulletBucketConfig {
                 name: "dye-hard".into(),
