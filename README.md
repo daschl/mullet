@@ -10,22 +10,23 @@ tweakable easily in the `build.rs`.
 It only works on osx right now, because we hardcode some link stuff. You can build with `cargo build` but really
 you want to run it with
 
-`cargo run`
+`cargo run -- -c sample_config.json`
 
-and then you can curl a query:
+You can modify the sample config that ships in this repository, but for now pretty much everything that's in the
+sample is supported.
 
-```
-$ curl -H "Content-Type: application/json" -d "{\"statement\": \"select 1=1\"}" http://127.0.0.1:9093/query/service
-[{"$1":true}]
-```
+## Usage
 
-You can also use cbq:
+Once started, it will print some debug information, most importantly which ports are used:
 
 ```
-$ cbq -e 127.0.0.1:9093
- No input credentials. In order to connect to a server with authentication, please provide credentials.
- Connected to : http://127.0.0.1:9093/. Type Ctrl-D or \QUIT to exit.
-
-cbq> select * from default:game;
-[{"game":{"id":"damien","roles":["beta"],"score":10,"type":"player"}},{"game":{"id":"dustin","score":10,"type":"player"}},{"game":{"id":"junyi","roles":["map-editor","GM"],"score":100,"tcbq>
+Sep 26 15:19:14.434 DEBG Loaded configuration MulletClusterConfig { nodes: [MulletNodeConfig { services: [Query] }, MulletNodeConfig { services: [Query] }], low_port: 9000 }
+Sep 26 15:19:14.435 DEBG Starting Cluster with 2 nodes at port range start 9000
+Sep 26 15:19:14.435 DEBG Starting Node 0 at port offset 0
+Sep 26 15:19:14.435 DEBG Starting Manager Service at port 9001
+Sep 26 15:19:14.437 DEBG Starting Query Service at port 9003
 ```
+
+This gives you a clue that the cluster manager is running at `127.0.0.1:9001` for one of the nodes and the query service
+at port `9003`. For now each node in the list gets 10 port range, but this might change in the future so don't depend
+on it at all.

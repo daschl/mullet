@@ -1,55 +1,42 @@
-use actix_web::{web, App, HttpResponse, HttpServer, Responder, guard};
-use serde::Deserialize;
-use std::ffi::{CStr, CString};
-use std::os::raw::c_char;
+use actix_rt::System;
 
-extern "C" {
-    pub fn StartServer();
-    pub fn RunQuery(q: *const c_char) -> *const c_char;
-}
+mod cluster;
+mod config;
+mod node;
+mod service;
 
-#[derive(Deserialize)]
-struct QueryRequest {
-    statement: String,
-}
-
-fn query_service_json(request: web::Json<QueryRequest>) -> impl Responder {
-    query_service_internal(request.statement.clone())
-}
-
-fn query_service_form(request: web::Form<QueryRequest>) -> impl Responder {
-    query_service_internal(request.statement.clone())
-}
-
-fn query_service_internal(statement: String) -> impl Responder {
-    // println!("Query: {:?}", statement);
-
-    let query = CString::new(statement).unwrap();
-    unsafe {
-        let result = CStr::from_ptr(RunQuery(query.as_ptr()));
-        HttpResponse::Ok().body(result.to_str().unwrap())
-    }
-}
+use crate::config::MulletClusterConfig;
+use cluster::Cluster;
+use slog::debug;
+use slog::o;
+use slog::Drain;
+use std::fs;
+use std::path::PathBuf;
+use structopt::StructOpt;
 
 fn main() {
-    unsafe {
-        StartServer();
-    }
+    let decorator = slog_term::TermDecorator::new().build();
+    let drain = slog_term::FullFormat::new(decorator).build().fuse();
+    let drain = slog_async::Async::new(drain).build().fuse();
+    let logger = slog::Logger::root(drain, o!());
 
-    HttpServer::new(|| App::new()
-        .route(
-        "/query/service",
-        web::post()
-            .guard(guard::Header("content-type", "application/json"))
-            .to(query_service_json))
-        .route(
-        "/query/service",
-        web::post()
-            .guard(guard::Header("content-type", "application/x-www-form-urlencoded"))
-            .to(query_service_form))
-    )
-    .bind("127.0.0.1:9093")
-    .unwrap()
-    .run()
-    .unwrap();
+    let options = Options::from_args();
+
+    let raw_config = fs::read_to_string(options.config_path).expect("Could not load config file");
+    let config: MulletClusterConfig =
+        serde_json::from_str(&raw_config).expect("Cannot parse config");
+    debug!(logger, "Loaded configuration {:?}", config);
+
+    let system = System::new("mullet");
+
+    let cluster = Cluster::new(config, logger);
+    cluster.run();
+
+    system.run().expect("Cannot run actix system");
+}
+
+#[derive(Debug, StructOpt)]
+struct Options {
+    #[structopt(short = "c", long = "config", parse(from_os_str))]
+    config_path: PathBuf,
 }

@@ -3,11 +3,6 @@ package main
 import (
 	"C"
 	"encoding/json"
-	http_base "net/http"
-	"os"
-	"runtime"
-	"time"
-	"sync/atomic"
 	"github.com/couchbase/query/accounting"
 	acct_resolver "github.com/couchbase/query/accounting/resolver"
 	config_resolver "github.com/couchbase/query/clustering/resolver"
@@ -18,12 +13,16 @@ import (
 	"github.com/couchbase/query/execution"
 	"github.com/couchbase/query/functions/constructor"
 	"github.com/couchbase/query/logging"
-	log_resolver "github.com/couchbase/query/logging/resolver"
 	"github.com/couchbase/query/prepareds"
 	"github.com/couchbase/query/server"
 	"github.com/couchbase/query/server/http"
 	"github.com/couchbase/query/timestamp"
 	"github.com/couchbase/query/value"
+	log_resolver "github.com/couchbase/query/logging/resolver"
+	http_base "net/http"
+	"os"
+	"sync/atomic"
+	"time"
 )
 
 type MockServer struct {
@@ -111,6 +110,8 @@ var GlobalServer atomic.Value
 
 //export StartServer
 func StartServer() {
+	logger, _ := log_resolver.NewLogger("golog")
+	logging.SetLogger(logger)
 
 	mockServer := &MockServer{}
 
@@ -188,11 +189,7 @@ func (this *scanConfigImpl) ScanVectorSource() timestamp.ScanVectorSource {
 
 //export RunQuery
 func RunQuery(q *C.char) *C.char {
-
 	statement := C.GoString(q)
-	logger, _ := log_resolver.NewLogger("golog")
-	logging.SetLogger(logger)
-	runtime.GOMAXPROCS(1)
 
 	mockServer := GlobalServer.Load().(*MockServer)
 
