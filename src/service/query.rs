@@ -1,4 +1,5 @@
 use crate::service::Service;
+use crate::state::SharedMulletState;
 use actix_web::{guard, web, App, HttpResponse, HttpServer, Responder};
 use serde::Deserialize;
 use slog::Logger;
@@ -39,18 +40,23 @@ fn query_service_internal(statement: String) -> impl Responder {
 pub struct QueryService {
     port: usize,
     logger: Logger,
+    state: SharedMulletState,
 }
 
 impl QueryService {
-    pub fn new(port: usize, logger: Logger) -> Self {
-        QueryService { port, logger }
+    pub fn new(port: usize, logger: Logger, state: SharedMulletState) -> Self {
+        QueryService {
+            port,
+            logger,
+            state,
+        }
     }
 }
 
 impl Service for QueryService {
     fn run(&self) {
-        INIT_SERVER.call_once(|| {
-            unsafe { StartServer(); }
+        INIT_SERVER.call_once(|| unsafe {
+            StartServer();
         });
 
         HttpServer::new(|| {

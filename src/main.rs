@@ -4,6 +4,7 @@ mod cluster;
 mod config;
 mod node;
 mod service;
+mod state;
 
 use crate::config::MulletClusterConfig;
 use cluster::Cluster;

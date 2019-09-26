@@ -1,17 +1,26 @@
 use crate::config::MulletClusterConfig;
 use crate::node::Node;
+use crate::state::{MulletState, SharedMulletState};
 use slog::debug;
 use slog::o;
 use slog::Logger;
+use std::sync::{Arc, Mutex};
+use std::borrow::BorrowMut;
 
 pub struct Cluster {
     config: MulletClusterConfig,
     logger: Logger,
+    state: SharedMulletState,
 }
 
 impl Cluster {
     pub fn new(config: MulletClusterConfig, logger: Logger) -> Self {
-        Cluster { config, logger }
+        let state = Arc::new(Mutex::new(MulletState::new()));
+        Cluster {
+            config,
+            logger,
+            state,
+        }
     }
 
     pub fn run(&self) {
@@ -21,6 +30,10 @@ impl Cluster {
             self.config.nodes().len(),
             self.config.low_port()
         );
+
+        for bucket_config in self.config.buckets() {
+            self.state.lock().expect("could not get lock").borrow_mut().add_bucket(bucket_config.clone());
+        }
 
         let mut port_offset = 0;
         let mut i = 0;
@@ -33,6 +46,7 @@ impl Cluster {
                 node_config.clone(),
                 self.config.low_port() + port_offset,
                 self.logger.new(o!()),
+                self.state.clone(),
             );
             node.run();
             port_offset = port_offset + 10;
