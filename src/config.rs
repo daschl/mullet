@@ -8,6 +8,7 @@ pub struct MulletClusterConfig {
 }
 
 impl MulletClusterConfig {
+
     pub fn nodes(&self) -> &Vec<MulletNodeConfig> {
         &self.nodes
     }
@@ -16,6 +17,21 @@ impl MulletClusterConfig {
     }
     pub fn buckets(&self) -> &Vec<MulletBucketConfig> {
         &self.buckets
+    }
+}
+
+impl Default for MulletClusterConfig {
+    fn default() -> Self {
+        MulletClusterConfig {
+            nodes: vec![MulletNodeConfig {
+                services: vec![MulletService::KeyValue, MulletService::Query]
+            }],
+            buckets: vec![MulletBucketConfig {
+                name: "dye-hard".into(),
+                ty: MulletBucketType::Couchbase,
+            }],
+            low_port: 9000,
+        }
     }
 }
 

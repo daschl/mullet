@@ -23,9 +23,13 @@ fn main() {
 
     let options = Options::from_args();
 
-    let raw_config = fs::read_to_string(options.config_path).expect("Could not load config file");
-    let config: MulletClusterConfig =
-        serde_json::from_str(&raw_config).expect("Cannot parse config");
+    let config: MulletClusterConfig = if options.config_path.is_some() {
+        let raw_config = fs::read_to_string(options.config_path.unwrap()).expect("Could not load config file");
+        serde_json::from_str(&raw_config).expect("Cannot parse config")
+    } else {
+        MulletClusterConfig::default()
+    };
+
     debug!(logger, "Loaded configuration {:?}", config);
 
     let system = System::new("mullet");
@@ -39,5 +43,5 @@ fn main() {
 #[derive(Debug, StructOpt)]
 struct Options {
     #[structopt(short = "c", long = "config", parse(from_os_str))]
-    config_path: PathBuf,
+    config_path: Option<PathBuf>,
 }
