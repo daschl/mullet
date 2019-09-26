@@ -1,10 +1,10 @@
 use crate::config::{MulletNodeConfig, MulletService};
+use crate::service::manager::ManagerService;
 use crate::service::query::QueryService;
 use crate::service::Service;
-use slog::Logger;
 use slog::debug;
 use slog::o;
-use crate::service::manager::ManagerService;
+use slog::Logger;
 
 pub struct Node {
     config: MulletNodeConfig,
@@ -14,7 +14,11 @@ pub struct Node {
 
 impl Node {
     pub fn new(config: MulletNodeConfig, port_base: usize, logger: Logger) -> Self {
-        Node { config, port_base, logger }
+        Node {
+            config,
+            port_base,
+            logger,
+        }
     }
 
     pub fn run(&self) {

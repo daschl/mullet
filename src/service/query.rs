@@ -1,9 +1,9 @@
 use crate::service::Service;
 use actix_web::{guard, web, App, HttpResponse, HttpServer, Responder};
 use serde::Deserialize;
+use slog::Logger;
 use std::ffi::{CStr, CString};
 use std::os::raw::c_char;
-use slog::Logger;
 
 extern "C" {
     pub fn StartServer();
@@ -46,8 +46,6 @@ impl QueryService {
 
 impl Service for QueryService {
     fn run(&self) {
-
-
         unsafe {
             StartServer();
         }

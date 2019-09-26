@@ -1,8 +1,8 @@
 use crate::config::MulletClusterConfig;
 use crate::node::Node;
 use slog::debug;
-use slog::Logger;
 use slog::o;
+use slog::Logger;
 
 pub struct Cluster {
     config: MulletClusterConfig,
@@ -29,7 +29,11 @@ impl Cluster {
                 self.logger,
                 "Starting Node {} at port offset {}", i, port_offset
             );
-            let node = Node::new(node_config.clone(), self.config.low_port() + port_offset, self.logger.new(o!()));
+            let node = Node::new(
+                node_config.clone(),
+                self.config.low_port() + port_offset,
+                self.logger.new(o!()),
+            );
             node.run();
             port_offset = port_offset + 10;
             i = i + 1;
