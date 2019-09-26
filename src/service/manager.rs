@@ -1,6 +1,6 @@
 use crate::service::Service;
 use crate::state::SharedMulletState;
-use actix_web::{web, App, HttpResponse, HttpServer, Responder, HttpRequest};
+use actix_web::{web, App, HttpResponse, HttpServer, Responder};
 use slog::Logger;
 
 pub struct ManagerService {
@@ -26,7 +26,7 @@ fn pools(state: web::Data<SharedMulletState>) -> impl Responder {
 }
 
 fn buckets(state: web::Data<SharedMulletState>) -> impl Responder {
-    let result = state.lock().unwrap().export_all_bucket_configs();
+    let result = state.lock().unwrap().export_all_bucket_configs(true);
     HttpResponse::Ok()
         .content_type("application/json")
         .body(serde_json::to_string(&result).unwrap())
@@ -34,7 +34,15 @@ fn buckets(state: web::Data<SharedMulletState>) -> impl Responder {
 
 fn bucket_verbose(path: web::Path<String>, state: web::Data<SharedMulletState>) -> impl Responder {
     let name = &*path;
-    let config = state.lock().unwrap().export_bucket_config(name);
+    let config = state.lock().unwrap().export_bucket_config(name, true);
+    HttpResponse::Ok()
+        .content_type("application/json")
+        .body(serde_json::to_string(&config).unwrap())
+}
+
+fn bucket_terse(path: web::Path<String>, state: web::Data<SharedMulletState>) -> impl Responder {
+    let name = &*path;
+    let config = state.lock().unwrap().export_bucket_config(name, false);
     HttpResponse::Ok()
         .content_type("application/json")
         .body(serde_json::to_string(&config).unwrap())
@@ -48,7 +56,15 @@ impl Service for ManagerService {
                 .data(state.clone())
                 .route("/pools", web::get().to(pools))
                 .route("/pools/default/buckets", web::get().to(buckets))
-                .route("/pools/default/buckets/{name}", web::get().to(bucket_verbose))
+                .route(
+                    "/pools/default/buckets/{name}",
+                    web::get().to(bucket_verbose),
+                )
+                .route(
+                    "/pools/default/b/{name}",
+                    web::get().to(bucket_terse),
+                )
+
         })
         .bind(format!("127.0.0.1:{}", self.port))
         .unwrap()

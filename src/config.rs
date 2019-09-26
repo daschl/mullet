@@ -36,7 +36,6 @@ pub enum MulletService {
     Query,
 }
 
-
 #[derive(Debug, Deserialize, Clone)]
 pub struct MulletBucketConfig {
     name: String,

@@ -4,8 +4,8 @@ use crate::state::{MulletState, SharedMulletState};
 use slog::debug;
 use slog::o;
 use slog::Logger;
-use std::sync::{Arc, Mutex};
 use std::borrow::BorrowMut;
+use std::sync::{Arc, Mutex};
 
 pub struct Cluster {
     config: MulletClusterConfig,
@@ -32,7 +32,11 @@ impl Cluster {
         );
 
         for bucket_config in self.config.buckets() {
-            self.state.lock().expect("could not get lock").borrow_mut().add_bucket(bucket_config.clone());
+            self.state
+                .lock()
+                .expect("could not get lock")
+                .borrow_mut()
+                .add_bucket(bucket_config.clone());
         }
 
         let mut port_offset = 0;
