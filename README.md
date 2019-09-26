@@ -15,6 +15,9 @@ you want to run it with
 You can modify the sample config that ships in this repository, but for now pretty much everything that's in the
 sample is supported.
 
+If you run it with just `cargo run` it will start with a single node and all services enabled for it, also a sample
+bucket will be loaded.
+
 ## Usage
 
 Once started, it will print some debug information, most importantly which ports are used:
